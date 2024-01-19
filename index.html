@@ -1,0 +1,107 @@
+<!-- Design a website that displays the public Github repositories belonging to any specific user.
+
+For example: `johnpapa` is a valid Github username -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repositories</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-center">GitHub Repositories</h2>
+    <div class="form-group text-center">
+        <label for="username">Enter GitHub Username:</label>
+        <input type="text" class="form-control" id="username" placeholder="e.g., johnpapa">
+        <button class="btn btn-primary mt-2" onclick="getRepositories()">Get Repositories</button>
+    </div>
+
+    <div class="form-inline mb-3">
+        <label class="mr-2">Repositories per page:</label>
+        <select class="form-control" id="perPageSelect">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+        <input type="text" class="form-control ml-2" id="search" placeholder="Search repositories...">
+        <button class="btn btn-primary ml-2" onclick="getRepositories()">Search</button>
+    </div>
+
+    <div id="repositories" class="mt-4">
+        <!-- Repository cards will be displayed here -->
+    </div>
+
+    <div id="loader" class="text-center mt-4" style="display: none;">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and Popper.js -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    let currentPage = 1;
+    const perPageSelect = document.getElementById('perPageSelect');
+    const searchInput = document.getElementById('search');
+    const loader = document.getElementById('loader');
+
+    function getRepositories() {
+        const username = document.getElementById('username').value;
+        const perPage = perPageSelect.value;
+        const searchQuery = searchInput.value;
+        const apiUrl = `https://api.github.com/users/${username}/repos?page=${currentPage}&per_page=${perPage}&q=${searchQuery}`;
+
+        // Show loader
+        loader.style.display = 'block';
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => displayRepositories(data))
+            .catch(error => console.error('Error fetching data:', error))
+            .finally(() => {
+                // Hide loader
+                loader.style.display = 'none';
+            });
+    }
+
+    function displayRepositories(repositories) {
+        const repositoriesContainer = document.getElementById('repositories');
+        repositoriesContainer.innerHTML = '';
+
+        repositories.forEach(repo => {
+            const card = document.createElement('div');
+            card.className = 'card mb-3';
+            card.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${repo.name}</h5>
+                    <p class="card-text">${repo.description || 'No description available'}</p>
+                    <p class="card-text"><strong>Topics:</strong> ${repo.topics.join(', ')}</p>
+                    <a href="${repo.html_url}" target="_blank" class="btn btn-primary">Visit Repository</a>
+                </div>
+            `;
+            repositoriesContainer.appendChild(card);
+        });
+    }
+</script>
+
+</body>
+</html>
+
